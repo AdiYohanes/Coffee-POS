@@ -4,16 +4,19 @@ dotenv.config();
 import { db } from './index';
 import { users, categories, items } from '../../drizzle/schema';
 import { nanoid } from 'nanoid';
+import { hash } from '@node-rs/argon2';
 
 const seed = async () => {
   console.log('🌱 Seeding database...');
 
   // 1. Create Admin User
   const adminId = nanoid(12);
+  const adminPasswordHash = await hash('Admin@123456');
   await db.insert(users).values({
     id: adminId,
     name: 'Admin User',
     email: 'admin@coffeepos.com',
+    passwordHash: adminPasswordHash,
     role: 'ADMIN',
   }).onConflictDoNothing();
 
