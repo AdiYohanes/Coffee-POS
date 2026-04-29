@@ -2,14 +2,14 @@
 
 import { z } from "zod";
 import { db } from "@/db";
-import { categories, items, modifiers, orders, orderItems, orderModifiers } from "../../drizzle/schema";
+import { categories, items, modifiers, orders, orderItems, orderModifiers } from "../../../drizzle/schema";
 import { eq, and, isNull } from "drizzle-orm";
 import { getCurrentSession } from "@/lib/auth/server";
 import { revalidatePath } from "next/cache";
 import { nanoid } from "nanoid";
 
 // Schemas
-export const createOrderSchema = z.object({
+const createOrderSchema = z.object({
   items: z.array(z.object({
     id: z.string(),
     quantity: z.number().min(1),
@@ -22,7 +22,7 @@ export const createOrderSchema = z.object({
   tax: z.number(),
 });
 
-export const updateOrderStatusSchema = z.object({
+const updateOrderStatusSchema = z.object({
   orderId: z.string(),
   status: z.enum(["PENDING", "DONE", "VOID"]),
 });

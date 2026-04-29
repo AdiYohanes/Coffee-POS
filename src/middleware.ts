@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PROTECTED_ROUTES = ['/dashboard', '/pos', '/inventory', '/settings'];
+const PROTECTED_ROUTES = ['/pos', '/orders', '/reports', '/inventory', '/settings'];
 const AUTH_ROUTES = ['/login'];
 
 export function middleware(request: NextRequest) {
@@ -20,7 +20,7 @@ export function middleware(request: NextRequest) {
   }
 
   if (isAuthRoute && sessionToken) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/pos', request.url));
   }
 
   return NextResponse.next();

@@ -13,6 +13,7 @@ import {
   deleteSessionTokenCookie 
 } from "@/lib/auth/server";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -30,8 +31,8 @@ export async function loginAction(
   formData: FormData
 ): Promise<AuthResponse> {
   const values = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
+    email: formData.get('email')?.toString().trim() || '',
+    password: formData.get('password')?.toString() || '',
   };
   const validated = loginSchema.safeParse(values);
   if (!validated.success) {
@@ -54,20 +55,14 @@ export async function loginAction(
     const { sessionId, expiresAt } = await createSession(user.id);
     await setSessionTokenCookie(sessionId, expiresAt);
 
-    return {
-      success: true,
-      data: {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role.toLowerCase() as "admin" | "cashier" | "barista",
-        },
-        expires: expiresAt.toISOString(),
-      },
-    };
+    // Redirect after setting cookie
+    redirect('/pos');
   } catch (error) {
     console.error("Login error:", error);
+    // Rethrow redirect if Next.js throws it
+    if (error && typeof error === 'object' && 'digest' in error && (error as any).digest?.startsWith('NEXT_REDIRECT')) {
+      throw error;
+    }
     return { success: false, error: "An unexpected error occurred" };
   }
 }

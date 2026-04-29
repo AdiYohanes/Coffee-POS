@@ -1,0 +1,97 @@
+/* Thermal Receipt Print Styles */
+@media print {
+  /* Hide all UI elements not related to the receipt */
+  nav, 
+  sidebar, 
+  footer, 
+  header,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Reset layout for print */
+  body {
+    width: 80mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  @page {
+    margin: 0;
+    size: 80mm auto;
+  }
+
+  /* Receipt Container */
+  .receipt-container {
+    width: 80mm;
+    padding: 5mm;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    line-height: 1.2;
+    color: black !important;
+    background: transparent !important;
+  }
+
+  .receipt-header {
+    text-align: center;
+    margin-bottom: 5mm;
+    border-bottom: 1px dashed #000;
+    padding-bottom: 2mm;
+  }
+
+  .receipt-items {
+    margin-bottom: 3mm;
+  }
+
+  .receipt-item-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1mm;
+  }
+
+  .receipt-total-section {
+    border-top: 1px dashed #000;
+    padding-top: 2mm;
+    margin-top: 2mm;
+  }
+
+  .receipt-total-row {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+  }
+
+  .receipt-footer {
+    text-align: center;
+    margin-top: 5mm;
+    font-size: 10px;
+  }
+
+  /* Force display of receipt content */
+  .print-only {
+    display: block !important;
+  }
+
+  /* Prevent page breaks inside receipt */
+  .receipt-container {
+    page-break-inside: avoid;
+  }
+
+  /* Ensure colors are black for text */
+  * {
+    color: #000 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+}
+
+/* Screen visibility */
+@media screen {
+  .print-only {
+    display: none;
+  }
+}
