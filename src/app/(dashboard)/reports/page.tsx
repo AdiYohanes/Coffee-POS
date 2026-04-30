@@ -128,7 +128,7 @@ export default function ReportsPage() {
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6" role="region" aria-label="Key Performance Indicators">
         <KPICard 
           title="Total Revenue" 
-          value={kpi?.success ? `$\${kpi.data.revenue?.toFixed(2) || '0.00'}` : "$0.00"} 
+          value={kpi?.success ? `$${kpi.data.revenue?.toFixed(2) || '0.00'}` : "$0.00"} 
           sub="Filtered period"
           icon={<TrendingUp className="w-6 h-6 text-green-600" />}
           loading={kpiLoading}
@@ -142,7 +142,7 @@ export default function ReportsPage() {
         />
         <KPICard 
           title="Void Losses" 
-          value={kpi?.success ? `$\${kpi.data.voidLoss?.toFixed(2) || '0.00'}` : "$0.00"} 
+          value={kpi?.success ? `$${kpi.data.voidLoss?.toFixed(2) || '0.00'}` : "$0.00"} 
           sub="Revenue lost to voids"
           icon={<AlertCircle className="w-6 h-6 text-red-600" />}
           loading={kpiLoading}
@@ -177,7 +177,7 @@ export default function ReportsPage() {
                         fontSize={12} 
                         tickLine={false} 
                         axisLine={false} 
-                        tickFormatter={(value) => `$\${value}`}
+                        tickFormatter={(value) => `$${value}`}
                       />
                       <Tooltip 
                         contentStyle={{ backgroundColor: "#FFFFFF", border: "1px solid #E8E2D9", borderRadius: "12px", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
@@ -221,7 +221,7 @@ export default function ReportsPage() {
                         nameKey="name"
                       >
                         {pieData.map((entry, index) => (
-                          <Cell key={`cell-\${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
                       <Tooltip 
@@ -257,7 +257,7 @@ function KPICard({ title, value, sub, icon, loading, color = "text-foreground" }
       {loading ? (
         <div className="h-8 w-24 bg-surface animate-pulse rounded" />
       ) : (
-        <p className={`text-3xl font-black \${color} relative z-10 tracking-tight`}>{value}</p>
+        <p className={`text-3xl font-black ${color} relative z-10 tracking-tight`}>{value}</p>
       )}
       <p className="text-[10px] font-bold text-muted mt-2 uppercase tracking-wide opacity-70 relative z-10">{sub}</p>
       <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-primary/5 rounded-full group-hover:scale-150 group-hover:bg-primary/10 transition-all duration-700 blur-2xl" />
@@ -272,7 +272,7 @@ function ChartSkeleton() {
         <div 
           key={i} 
           className="w-full bg-surface animate-pulse rounded-t-lg"
-          style={{ height: `\${Math.random() * 80 + 20}%` }}
+          style={{ height: `${Math.random() * 80 + 20}%` }}
         />
       ))}
     </div>

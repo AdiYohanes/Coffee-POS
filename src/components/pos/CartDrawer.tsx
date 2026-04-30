@@ -90,6 +90,7 @@ export function CartDrawer() {
             <p className="text-sm font-medium">Cart is empty</p>
           </div>
         ) : (
+          items.map((item) => (
             <div
               key={item.cartItemId}
               className="flex flex-col space-y-2 group bg-surface p-2.5 rounded-xl border border-border transition-all hover:shadow-sm hover:border-primary/20"
