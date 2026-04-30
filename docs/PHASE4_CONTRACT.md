@@ -1,88 +1,119 @@
-## Server Action Signatures
+# Phase 4 Contract: Reporting, Void/Hold, Receipt & QA
 
-| Action Name | Parameters | Return Type | Description |
+## 1. Server Action Signatures
+
+| Action | Parameters | Return Type | Description |
 | :--- | :--- | :--- | :--- |
-| `getDailySalesAction` | `startDate: Date, endDate: Date` | `Promise<{ date: string, total: number }[]>` | Retrieves daily sales aggregates within a given date range. |
-| `getTopItemsAction` | `limit: number` | `Promise<{ name: string, quantity: number }[]>` | Retrieves the top selling items by quantity. |
-| `getOrderHistoryAction` | `filters: { status?: string, date?: Date }` | `Promise<Order[]>` | Fetches order history based on provided filters. |
-| `voidOrderAction` | `orderId: string, reason: string` | `Promise<{ success: boolean, error?: string }>` | Voids a specific order and logs the reason. |
-| `getReceiptDataAction` | `orderId: string` | `Promise<ReceiptData>` | Fetches comprehensive data required for printing a receipt. |
+| `getDailySalesAction` | `start: Date, end: Date` | `Promise<ActionResponse<DailySalesData[]>>` | Fetches sales grouped by day. |
+| `getTopItemsAction` | `limit: number` | `Promise<ActionResponse<TopItemData[]>>` | Fetches top selling items up to `limit`. |
+| `voidOrderAction` | `orderId: string, reason: string` | `Promise<ActionResponse<Order>>` | Voids an order with a mandatory reason. |
+| `getReceiptDataAction` | `orderId: string` | `Promise<ActionResponse<ReceiptData>>` | Retrieves formatted receipt data. |
 
-## Zod Validation Schemas
+## 2. Zod Validation Schemas
 
-*   **Void Order Schema**:
-    *   `orderId`: `z.string().uuid()`
-    *   `reason`: `z.string().min(5, "Reason must be at least 5 characters").max(255)`
-*   **Receipt Input Schema**:
-    *   `orderId`: `z.string().uuid()`
-*   **Date Range Filter Schema**:
-    *   `startDate`: `z.date()`
-    *   `endDate`: `z.date()`
+- **Date Range Filter**
+  - `start`: `z.date({ required_error: "Start date is required" })`
+  - `end`: `z.date({ required_error: "End date is required" })`
+- **Top Items Filter**
+  - `limit`: `z.number().int().min(1).max(50).default(10)`
+- **Void Order Input**
+  - `orderId`: `z.string().uuid("Invalid order ID format")`
+  - `reason`: `z.string().min(5, "Void reason must be at least 5 characters").max(200)`
+- **Receipt Input**
+  - `orderId`: `z.string().uuid("Invalid order ID format")`
 
-## Data Aggregation Logic
+## 3. Data Aggregation Logic
 
-*   **Group Sales by Day/Category**: Utilize Drizzle's `sql` helper to `DATE_TRUNC('day', createdAt)` and group by category.
-*   **Calculate Void Totals**: Sum total amounts where `status = 'VOIDED'`, grouped by `reason`.
-*   **Timezone Handling**: Store all timestamps in UTC in the database; aggregate at the database level in UTC, then convert to the local timezone on the client for rendering.
+- **Grouping**: Group daily sales by `DATE(created_at)` using SQL aggregation, categorized by item category.
+- **Void Totals**: Exclude voided orders from revenue totals, but calculate a separate `voidTotal` to track losses.
+- **Timezone Handling**: Ensure `created_at` (UTC) is converted to local timezone before grouping by day to prevent sales spilling into incorrect days.
 
-## Component Tree
+## 4. Component Tree
 
-*   `/reports` (Page)
-    *   `DateRangePicker` (Client Component)
-    *   `KPICards` (Server/Client Hybrid)
-    *   `SalesChart` (Client Component - Recharts)
-    *   `TopItemsList` (Server Component)
-*   `/orders` (Page)
-    *   `OrderHistoryTable` (Server Component with Client interactivity)
-    *   `VoidOrderModal` (Client Component - Radix Dialog)
-    *   `ReceiptPreview` (Client Component)
+- `/reports`
+  - `DateFilterPanel`
+  - `KPICards` (Revenue, Order Count, Void Losses)
+  - `RechartsWrapper`
+    - `DailySalesChart` (BarChart/LineChart)
+    - `TopItemsChart` (PieChart/BarChart)
+- `/orders`
+  - `OrderHistoryTable`
+    - `StatusBadge`
+    - `ActionMenu`
+  - `VoidOrderModal` (Contains reason text input)
+  - `ReceiptPreviewDialog`
 
-## Role Permissions
+## 5. Role Permissions
 
-| Role | Permissions |
-| :--- | :--- |
-| `admin` | Full access to reports, all orders, and ability to void any order. |
-| `cashier` | Access to view their own orders, void their own orders (reason required), print receipts. |
-| `barista` | View order queue only. No access to reports or voiding. |
+- **`admin`**: Full access to `/reports` and all `/orders`.
+- **`cashier`**: Restricted from `/reports`. Can view their own orders in `/orders` and can void their own orders (reason required).
 
-## Receipt Generation Strategy
+## 6. Receipt Generation Strategy
 
-*   **Trigger**: Use `window.print()` triggered by a user action on the client side.
-*   **Layout**: Thermal-friendly layout optimized for 80mm width.
-*   **Typography**: Monospace font (e.g., Courier, 'Courier New') for uniform character spacing.
-*   **Styling**: Use CSS `@media print` query to override screen styles.
-*   **Content**: No images, strict text-based hierarchy (Header, Items, Total, Footer).
+- **Trigger**: Programmatic `window.print()` triggered via client component.
+- **Layout**: 80mm thermal printer format.
+- **Implementation**: HTML/CSS based using `@media print` rules.
+- **UI Chrome**: Hide all navigation, sidebars, and buttons during print mode.
 
-## Print CSS Rules
+## 7. QA & Polish Checklist
 
-*   **Hide UI Chrome**:
-    *   `@media print { nav, sidebar, footer, .no-print { display: none !important; } }`
-*   **Force Background & Colors**:
-    *   `@media print { * { color: #000 !important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; } }`
-*   **Thermal Dimensions**:
-    *   `@media print { @page { margin: 0; size: 80mm auto; } }`
-    *   `@media print { body { width: 80mm; margin: 0; padding: 5mm; font-family: monospace; font-size: 12px; } }`
+- [ ] **Lighthouse Targets**: >80 on Performance, Accessibility, Best Practices, and SEO.
+- [ ] **Accessibility (a11y)**: Proper `aria-labels`, focus management for modals, screen reader support for charts.
+- [ ] **Error Boundaries**: Wrap `/reports` and `/orders` with global and component-level error boundaries.
+- [ ] **Loading Skeletons**: Implement `Suspense` with skeleton fallbacks for chart and table fetching.
+- [ ] **Dynamic Loading**: Use `next/dynamic` for heavy client components like `recharts` to reduce initial bundle size (`dynamic(() => import('recharts'), { ssr: false })`).
 
-## QA & Polish Checklist
+## 8. Cache & Revalidation
 
-*   **Lighthouse Targets**: >90 in Performance, Accessibility, Best Practices, and SEO.
-*   **Accessibility (a11y)**: Ensure all interactive elements have `aria-labels`, inputs have associated labels, and focus management is handled in modals.
-*   **Error Boundaries**: Implement React Error Boundaries to catch rendering errors in isolated components.
-*   **Loading Skeletons**: Use generic skeleton loaders for KPI cards, tables, and charts during server-side data fetching.
-*   **Performance Optimizations**:
-    *   Use `next/dynamic()` for heavy client components (e.g., `Recharts`).
-    *   Apply `React.memo` for components with expensive renders and stable props.
-    *   Implement image optimization if any images are introduced in reports.
+- **Reports**: Use `staleTime: 5 * 60 * 1000` (5 minutes) for report queries. Do not aggressively invalidate on every order to save DB load.
+- **Orders Table**: Use `revalidatePath('/orders')` when `voidOrderAction` executes to immediately reflect status changes.
+- **Receipt Data**: Cache indefinitely or use long `staleTime` since historical receipts do not change.
 
-## Cache & Revalidation
+## 9. Required Dependencies
 
-*   **Reports Cache**: Cache heavily (e.g., 5-15 minutes or daily) using Next.js `revalidate` option. Invalidate (`revalidatePath('/reports')`) manually only if a major historical correction occurs.
-*   **Orders Cache**: Cache lightly or use dynamic rendering (`force-dynamic`). Invalidate (`revalidatePath('/orders')`) immediately after `voidOrderAction` or when a new order is completed.
+- `recharts`
+- `date-fns`
+- `sonner`
+- `@radix-ui/react-dialog`
+- `@radix-ui/react-dropdown-menu`
+- `@radix-ui/react-slot`
 
-## Required Dependencies
+## 10. Thermal Receipt Print CSS Rules
 
-*   `recharts`
-*   `date-fns`
-*   `sonner`
-*   `@radix-ui/react-dialog`
-*   `@radix-ui/react-select`
+```css
+@media print {
+  /* Hide UI Chrome */
+  nav, header, aside, button, .no-print {
+    display: none !important;
+  }
+
+  /* Force background colors (if needed for logos) */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Thermal 80mm Layout Constraints */
+  @page {
+    margin: 0;
+    size: 80mm 297mm; /* Standard 80mm roll width, arbitrary long height */
+  }
+
+  body {
+    width: 80mm;
+    margin: 0;
+    padding: 5mm; /* Inner padding for the receipt text */
+    font-family: 'Courier New', Courier, monospace; /* Thermal style font */
+    font-size: 12px; /* Standard thermal font size */
+    line-height: 1.2;
+    background: white;
+    color: black;
+  }
+
+  .receipt-container {
+    width: 100%;
+    /* Ensure content flows down naturally */
+    display: block;
+  }
+}
+```

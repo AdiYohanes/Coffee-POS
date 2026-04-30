@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useCartStore } from "@/lib/stores/cart";
@@ -7,11 +8,28 @@ import { useState, useEffect } from "react";
 import { CheckoutModal } from "./CheckoutModal";
 
 export function CartDrawer() {
-  const { items, heldOrders, remove, updateQuantity, clear, hold, restore, getTotals } = useCartStore();
+  const {
+    items,
+    heldOrders,
+    remove,
+    updateQuantity,
+    clear,
+    hold,
+    restore,
+    getTotals,
+  } = useCartStore();
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const { subtotal, tax, total } = getTotals();
+  const [isMounted, setIsMounted] = useState(false);
 
-  const heldRefs = Object.keys(heldOrders);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Use a fallback for getTotals before hydration to avoid server/client mismatch
+  const { subtotal, tax, total } = isMounted
+    ? getTotals()
+    : { subtotal: 0, tax: 0, total: 0 };
+  const heldRefs = isMounted ? Object.keys(heldOrders) : [];
 
   // F2 keyboard shortcut for checkout
   useEffect(() => {
@@ -37,19 +55,23 @@ export function CartDrawer() {
           <h2 className="text-lg font-bold text-white">Current Order</h2>
         </div>
         <div className="flex items-center space-x-3">
-          {heldRefs.length > 0 && (
-            <select 
+          {isMounted && heldRefs.length > 0 && (
+            <select
               onChange={(e) => restore(e.target.value)}
               className="bg-transparent text-[10px] font-bold text-purple-400 uppercase tracking-widest outline-none cursor-pointer border-none"
               value=""
             >
-              <option value="" disabled className="bg-[#1C161A]">Held ({heldRefs.length})</option>
-              {heldRefs.map(ref => (
-                <option key={ref} value={ref} className="bg-[#1C161A]">{ref}</option>
+              <option value="" disabled className="bg-[#1C161A]">
+                Held ({heldRefs.length})
+              </option>
+              {heldRefs.map((ref) => (
+                <option key={ref} value={ref} className="bg-[#1C161A]">
+                  {ref}
+                </option>
               ))}
             </select>
           )}
-          <button 
+          <button
             onClick={() => {
               const ref = prompt("Enter order reference:");
               if (ref) hold(ref);
@@ -58,7 +80,7 @@ export function CartDrawer() {
           >
             Hold
           </button>
-          <button 
+          <button
             onClick={clear}
             className="text-xs font-semibold text-gray-500 hover:text-red-400 transition-colors uppercase tracking-wider"
           >
@@ -68,20 +90,27 @@ export function CartDrawer() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
-        {items.length === 0 ? (
+        {!isMounted || items.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-gray-600 space-y-3 opacity-30">
             <ShoppingCart className="h-16 w-16" />
             <p className="text-sm font-medium">Cart is empty</p>
           </div>
         ) : (
           items.map((item) => (
-            <div key={item.cartItemId} className="flex flex-col space-y-2 group bg-[#251E23]/50 p-3 rounded-xl border border-transparent hover:border-white/5 transition-all">
+            <div
+              key={item.cartItemId}
+              className="flex flex-col space-y-2 group bg-[#251E23]/50 p-3 rounded-xl border border-transparent hover:border-white/5 transition-all"
+            >
               <div className="flex justify-between items-start">
                 <div className="flex flex-col flex-1">
-                  <span className="font-semibold text-gray-100 text-sm">{item.name}</span>
-                  <span className="text-xs text-purple-400 font-bold">{formatCurrency(item.price)}</span>
+                  <span className="font-semibold text-gray-100 text-sm">
+                    {item.name}
+                  </span>
+                  <span className="text-xs text-purple-400 font-bold">
+                    {formatCurrency(item.price)}
+                  </span>
                 </div>
-                <button 
+                <button
                   onClick={() => remove(item.cartItemId)}
                   className="h-7 w-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-400/10 transition-all opacity-0 group-hover:opacity-100"
                 >
@@ -90,21 +119,29 @@ export function CartDrawer() {
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2 bg-black/20 rounded-lg p-1 border border-white/5">
-                  <button 
-                    onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
+                  <button
+                    onClick={() =>
+                      updateQuantity(item.cartItemId, item.quantity - 1)
+                    }
                     className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-white/5 text-gray-400 transition-colors"
                   >
                     <Minus className="h-3 w-3" />
                   </button>
-                  <span className="text-xs font-bold text-white min-w-[20px] text-center">{item.quantity}</span>
-                  <button 
-                    onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
+                  <span className="text-xs font-bold text-white min-w-[20px] text-center">
+                    {item.quantity}
+                  </span>
+                  <button
+                    onClick={() =>
+                      updateQuantity(item.cartItemId, item.quantity + 1)
+                    }
                     className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-white/5 text-gray-400 transition-colors"
                   >
                     <Plus className="h-3 w-3" />
                   </button>
                 </div>
-                <span className="text-sm font-bold text-gray-200">{formatCurrency(item.price * item.quantity)}</span>
+                <span className="text-sm font-bold text-gray-200">
+                  {formatCurrency(item.price * item.quantity)}
+                </span>
               </div>
             </div>
           ))
@@ -128,7 +165,7 @@ export function CartDrawer() {
         </div>
 
         <button
-          disabled={items.length === 0}
+          disabled={!isMounted || items.length === 0}
           onClick={() => setIsCheckoutOpen(true)}
           className="group relative w-full overflow-hidden py-4 rounded-xl bg-purple-600 text-white font-black uppercase tracking-widest text-sm shadow-xl shadow-purple-500/20 hover:bg-purple-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
         >
@@ -141,7 +178,10 @@ export function CartDrawer() {
       </div>
 
       {isCheckoutOpen && (
-        <CheckoutModal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} />
+        <CheckoutModal
+          isOpen={isCheckoutOpen}
+          onClose={() => setIsCheckoutOpen(false)}
+        />
       )}
     </div>
   );
