@@ -8,7 +8,7 @@ export interface CartItem {
   name: string;
   price: number;
   quantity: number;
-  modifiers: string[]; // Array of modifier IDs
+  modifiers: { id: string; name: string; price: number }[]; // Array of modifier objects
 }
 
 interface PosState {
@@ -78,10 +78,13 @@ export const useCartStore = create<PosState>()(
         set({ items, heldOrders: newHeldOrders });
       },
       getTotals: () => {
-        const subtotal = get().items.reduce(
-          (acc, item) => acc + item.price * item.quantity,
-          0
-        );
+        const subtotal = get().items.reduce((acc, item) => {
+          const modifiersTotal = item.modifiers.reduce(
+            (sum, mod) => sum + mod.price,
+            0
+          );
+          return acc + (item.price + modifiersTotal) * item.quantity;
+        }, 0);
         const tax = subtotal * 0.1; // 10% VAT
         return {
           subtotal: Number(subtotal.toFixed(2)),

@@ -226,7 +226,12 @@ export async function getOrderHistoryAction(): Promise<ActionResponse<any[]>> {
         user: true,
         orderItems: {
           with: {
-            item: true
+            item: true,
+            orderModifiers: {
+              with: {
+                modifier: true
+              }
+            }
           }
         }
       }
