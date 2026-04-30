@@ -1,5 +1,7 @@
 "use client";
 
+export const maxDuration = 60;
+
 import React, { useState, useTransition, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";

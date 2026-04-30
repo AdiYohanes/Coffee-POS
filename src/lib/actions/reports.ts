@@ -10,8 +10,8 @@ import { revalidatePath } from "next/cache";
 // --- Schemas ---
 
 const dateRangeSchema = z.object({
-  start: z.coerce.date({ required_error: "Start date is required" }),
-  end: z.coerce.date({ required_error: "End date is required" }),
+  start: z.coerce.date({ message: "Start date is required" }),
+  end: z.coerce.date({ message: "End date is required" }),
 });
 
 const topItemsSchema = z.object({
