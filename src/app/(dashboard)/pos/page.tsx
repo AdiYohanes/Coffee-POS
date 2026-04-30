@@ -3,8 +3,17 @@
 import { MenuGrid } from "@/components/pos/MenuGrid";
 import { CartDrawer } from "@/components/pos/CartDrawer";
 import { OrderQueue } from "@/components/pos/OrderQueue";
+import { LogOut } from "lucide-react";
+import { logoutAction } from "@/actions/auth";
+import { useRouter } from "next/navigation";
 
 export default function PosPage() {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logoutAction();
+    router.push("/login");
+  };
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#0B090A]">
       {/* Left: Order Queue */}
@@ -24,7 +33,7 @@ export default function PosPage() {
                 Coffee <span className="text-purple-500">Terminal</span>
               </h1>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-5">
                <div className="flex flex-col items-end">
                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">System Status</span>
                  <span className="text-[11px] font-black text-green-500 uppercase tracking-widest flex items-center">
@@ -32,6 +41,15 @@ export default function PosPage() {
                    Online
                  </span>
                </div>
+               <div className="h-6 w-px bg-white/10" />
+               <button 
+                 onClick={handleLogout}
+                 className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
+                 title="Logout"
+               >
+                 <LogOut className="h-4 w-4" />
+                 <span className="text-[11px] font-black uppercase tracking-widest">Logout</span>
+               </button>
             </div>
           </header>
           <div className="flex-1 overflow-hidden p-6">

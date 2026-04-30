@@ -8,6 +8,18 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
+type ActiveOrder = {
+  id: string;
+  createdAt: string | Date;
+  total: string;
+  user: { name: string };
+  orderItems: {
+    id: string;
+    quantity: number;
+    item: { name: string };
+  }[];
+};
+
 export function OrderQueue() {
   const queryClient = useQueryClient();
 
@@ -64,7 +76,7 @@ export function OrderQueue() {
             <p className="text-[10px] font-bold uppercase tracking-widest">No pending orders</p>
           </div>
         ) : (
-          activeOrders.map((order) => (
+          activeOrders.map((order: ActiveOrder) => (
             <div key={order.id} className="group bg-[#1C161A] rounded-xl overflow-hidden border border-white/5 transition-all hover:border-purple-500/30">
               <div className="p-3 space-y-3">
                 <div className="flex justify-between items-start">
@@ -81,7 +93,7 @@ export function OrderQueue() {
                 </div>
 
                 <div className="space-y-1.5">
-                  {order.orderItems.map((oi: any) => (
+                  {order.orderItems.map((oi: ActiveOrder["orderItems"][0]) => (
                     <div key={oi.id} className="flex items-center justify-between text-[11px]">
                       <div className="flex items-center space-x-1.5">
                         <span className="font-bold text-purple-400">{oi.quantity}x</span>

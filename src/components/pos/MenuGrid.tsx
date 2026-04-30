@@ -7,6 +7,17 @@ import { useEffect, useState } from "react";
 import { Coffee, Loader2 } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
 
+type MenuCategory = {
+  id: string;
+  name: string;
+  items: {
+    id: string;
+    name: string;
+    basePrice: string;
+    imageUrl: string | null;
+  }[];
+};
+
 export function MenuGrid() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const { add } = useCartStore();
@@ -27,7 +38,7 @@ export function MenuGrid() {
       if (e.key >= "1" && e.key <= "9") {
         const index = parseInt(e.key) - 1;
         const currentCategory = activeCategory 
-          ? menu?.find(c => c.id === activeCategory) 
+          ? menu?.find((c: MenuCategory) => c.id === activeCategory) 
           : menu?.[0];
         
         if (currentCategory?.items[index]) {
@@ -56,14 +67,14 @@ export function MenuGrid() {
 
   const categories = menu || [];
   const currentCategory = activeCategory 
-    ? categories.find(c => c.id === activeCategory) 
+    ? categories.find((c: MenuCategory) => c.id === activeCategory) 
     : categories[0];
 
   return (
     <div className="flex h-full flex-col space-y-4">
       {/* Category Tabs */}
       <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
-        {categories.map((cat) => (
+        {categories.map((cat: MenuCategory) => (
           <button
             key={cat.id}
             onClick={() => setActiveCategory(cat.id)}
@@ -81,7 +92,7 @@ export function MenuGrid() {
 
       {/* Items Grid */}
       <div className="grid grid-cols-2 gap-4 overflow-y-auto pr-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 scrollbar-hide pb-20">
-        {currentCategory?.items.map((item, index) => (
+        {currentCategory?.items.map((item: MenuCategory["items"][0], index: number) => (
           <button
             key={item.id}
             onClick={() => add({
